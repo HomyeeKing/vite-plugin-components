@@ -7,6 +7,7 @@
     <ComponentD />
     <h3>Recursive Components</h3>
     <recursive :data="tree" />
+    <newone/>
   </div>
 
   <div class="block">

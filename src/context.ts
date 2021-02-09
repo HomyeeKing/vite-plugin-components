@@ -44,16 +44,14 @@ export class Context {
     if (viteConfig.command === 'serve') {
       // TODO: use vite's watcher instead
       chokidar.watch(dirs, { ignoreInitial: true })
-        .on('unlink', (path) => {
+        .on('unlink', (path) => {            
           if (matchGlobs(path, this.globs)) {
             this.removeComponents(path)
-            this.onUpdate(path)
           }
         })
         .on('add', (path) => {
           if (matchGlobs(path, this.globs)) {
             this.addComponents(path)
-            this.onUpdate(path)
           }
         })
     }
@@ -95,7 +93,6 @@ export class Context {
 
   removeComponents(paths: string | string[]) {
     debug.components('remove', paths)
-
     const size = this._componentPaths.size
     toArray(paths).forEach(p => this._componentPaths.delete(p))
     if (this._componentPaths.size !== size) {
@@ -108,7 +105,9 @@ export class Context {
   onUpdate(path: string) {
     if (!this._server)
       return
-
+      this._server.ws.send({
+          type:'full-reload'
+      })
     const payload: UpdatePayload = {
       type: 'update',
       updates: [],
