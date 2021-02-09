@@ -1,7 +1,7 @@
 import Debug from 'debug'
 import { Transformer } from '../types'
 import { Context } from '../context'
-import { pascalCase, stringifyComponentImport } from '../utils'
+import { pascalCase, stringifyComponentImport, toArray } from '../utils'
 
 const debug = Debug('vite-plugin-components:transform')
 
@@ -15,6 +15,10 @@ export function VueTransformer(ctx: Context): Transformer {
     const sfcPath = ctx.normalizePath(path)
     debug(sfcPath)
 
+    const extensionsRE = new RegExp(`\\.(${toArray(ctx.options.extensions).join('|')})$`)
+    const targetFile = sfcPath.replace(extensionsRE,'').slice(sfcPath.lastIndexOf('/')+1)
+    debug(targetFile)
+    
     const head: string[] = []
     let no = 0
     const componentPaths: string[] = []
@@ -30,11 +34,12 @@ export function VueTransformer(ctx: Context): Transformer {
           head.push(stringifyComponentImport({ ...component, name: var_name }))
           no += 1
           return var_name
+        }else{
+            throw new Error(`Failed to resolve component: ${match} at <${targetFile}>`)
         }
       }
       return str
     })
-
     debug(`^ (${no})`)
 
     ctx.updateUsageMap(sfcPath, componentPaths)
