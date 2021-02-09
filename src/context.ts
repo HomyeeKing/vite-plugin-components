@@ -44,14 +44,16 @@ export class Context {
     if (viteConfig.command === 'serve') {
       // TODO: use vite's watcher instead
       chokidar.watch(dirs, { ignoreInitial: true })
-        .on('unlink', (path) => {            
+        .on('unlink', (path) => {
           if (matchGlobs(path, this.globs)) {
             this.removeComponents(path)
+            this.onUpdate(path)
           }
         })
         .on('add', (path) => {
           if (matchGlobs(path, this.globs)) {
             this.addComponents(path)
+            this.onUpdate(path)
           }
         })
     }
@@ -105,9 +107,6 @@ export class Context {
   onUpdate(path: string) {
     if (!this._server)
       return
-      this._server.ws.send({
-          type:'full-reload'
-      })
     const payload: UpdatePayload = {
       type: 'update',
       updates: [],
@@ -127,6 +126,7 @@ export class Context {
           })
         }
       })
+    console.log(payload.updates)
 
     if (payload.updates.length)
       this._server.ws.send(payload)
